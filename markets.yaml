@@ -1,0 +1,107 @@
+# Curated allowlist of (dex, coin) pairs to ingest.
+# coin is the bare ticker; API symbol = dex:coin (e.g. xyz:NVDA).
+# Edit by hand to add/remove markets. The daily discovery loop logs diffs
+# vs the live xyz universe so you know what's new or missing.
+#
+# Flagged for manual review (ambiguous or non-obvious underlyings):
+#   BIRD    - Allbirds (NASDAQ: BIRD)
+#   KIOXIA  - Kioxia Holdings (Tokyo: 285A)
+#   MINIMAX - verify this is the equity, not a crypto project
+#   SMSN    - Samsung Electronics GDR (LSE: SMSN)
+markets:
+  - dex: xyz
+    coin: AAPL
+  - dex: xyz
+    coin: AMD
+  - dex: xyz
+    coin: AMZN
+  - dex: xyz
+    coin: ARM
+  - dex: xyz
+    coin: ASML
+  - dex: xyz
+    coin: AVGO
+  - dex: xyz
+    coin: BABA
+  - dex: xyz
+    coin: BB
+  - dex: xyz
+    coin: BIRD      # flagged: verify underlying
+  - dex: xyz
+    coin: BX
+  - dex: xyz
+    coin: COIN
+  - dex: xyz
+    coin: COST
+  - dex: xyz
+    coin: CRCL
+  - dex: xyz
+    coin: CRWV
+  - dex: xyz
+    coin: DELL
+  - dex: xyz
+    coin: DKNG
+  - dex: xyz
+    coin: EBAY
+  - dex: xyz
+    coin: GME
+  - dex: xyz
+    coin: GOOGL
+  - dex: xyz
+    coin: HIMS
+  - dex: xyz
+    coin: HOOD
+  - dex: xyz
+    coin: HYUNDAI
+  - dex: xyz
+    coin: IBM
+  - dex: xyz
+    coin: INTC
+  - dex: xyz
+    coin: KIOXIA    # flagged: verify underlying
+  - dex: xyz
+    coin: LITE
+  - dex: xyz
+    coin: LLY
+  - dex: xyz
+    coin: META
+  - dex: xyz
+    coin: MINIMAX   # flagged: verify underlying
+  - dex: xyz
+    coin: MRVL
+  - dex: xyz
+    coin: MSFT
+  - dex: xyz
+    coin: MSTR
+  - dex: xyz
+    coin: MU
+  - dex: xyz
+    coin: NBIS
+  - dex: xyz
+    coin: NFLX
+  - dex: xyz
+    coin: NOW
+  - dex: xyz
+    coin: NVDA
+  - dex: xyz
+    coin: ORCL
+  - dex: xyz
+    coin: PLTR
+  - dex: xyz
+    coin: RIVN
+  - dex: xyz
+    coin: RKLB
+  - dex: xyz
+    coin: SMSN      # flagged: Samsung GDR
+  - dex: xyz
+    coin: SNDK
+  - dex: xyz
+    coin: SOFTBANK
+  - dex: xyz
+    coin: TSLA
+  - dex: xyz
+    coin: TSM
+  - dex: xyz
+    coin: USAR
+  - dex: xyz
+    coin: ZM

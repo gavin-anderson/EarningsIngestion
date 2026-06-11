@@ -1,0 +1,29 @@
+# Air config for `make dev` hot reload.
+# https://github.com/air-verse/air
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  # Build the ingest binary into tmp/ on each rebuild.
+  cmd = "go build -o ./tmp/ingest.exe ./cmd/ingest"
+  bin = "./tmp/ingest.exe"
+  include_ext = ["go"]
+  exclude_dir = ["bin", "tmp", "scripts"]
+  # Wait this many ms after a change before rebuilding (debounces editor saves).
+  delay = 500
+  # Don't restart if the build fails -- keep the last good binary running.
+  stop_on_error = true
+  send_interrupt = true
+  kill_delay = "3s"
+
+[log]
+  time = true
+
+[color]
+  main = "magenta"
+  watcher = "cyan"
+  build = "yellow"
+  runner = "green"
+
+[misc]
+  clean_on_exit = true

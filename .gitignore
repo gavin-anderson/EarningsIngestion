@@ -1,0 +1,33 @@
+# --- Local config / secrets ---
+.env
+.env.local
+.env.*.local
+
+# --- Go build outputs ---
+/bin/
+*.exe
+*.test
+*.out
+coverage.out
+*.prof
+*.pprof
+
+# --- air (hot-reload) ---
+/tmp/
+
+# --- Docker local state (not compose config) ---
+clickhouse-data/
+
+# --- Internal planning docs ---
+PROMPT*.md
+
+# --- Editor / OS noise ---
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# --- Claude Code ---
+.claude/
