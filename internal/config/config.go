@@ -28,8 +28,9 @@ const (
 
 // Config is the resolved runtime configuration shared by both binaries.
 type Config struct {
-	HLRESTURL string
-	HLWSURL   string
+	HLRESTURL  string
+	HLWSURL    string
+	HLProxyKey string // X-Proxy-Key header for the edge proxy; empty = no header
 
 	CHAddr     string
 	CHDatabase string
@@ -48,6 +49,7 @@ func Load() Config {
 	return Config{
 		HLRESTURL:   envOr("HL_REST_URL", DefaultRESTURL),
 		HLWSURL:     envOr("HL_WS_URL", DefaultWSURL),
+		HLProxyKey:  envOr("HL_PROXY_KEY", ""),
 		CHAddr:      envOr("CH_ADDR", DefaultCHAddr),
 		CHDatabase:  envOr("CH_DATABASE", DefaultCHDatabase),
 		CHUsername:  envOr("CH_USERNAME", DefaultCHUsername),

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"net/http"
 
 	"github.com/coder/websocket"
 )
@@ -19,6 +20,10 @@ const DefaultWSURL = "wss://api.hyperliquid.xyz/ws"
 type WSClient struct {
 	URL string
 	log *slog.Logger
+
+	// ProxyKey, if non-empty, is sent as the X-Proxy-Key header on the
+	// initial WS handshake so the edge proxy can authenticate the ingester.
+	ProxyKey string
 
 	conn *websocket.Conn
 }
@@ -37,7 +42,13 @@ func NewWSClient(url string, log *slog.Logger) *WSClient {
 // Connect dials the WS endpoint. ReadLimit is raised because activeAssetCtx
 // frames can be large (impactPxs arrays etc.) and the default 32KiB is tight.
 func (c *WSClient) Connect(ctx context.Context) error {
-	conn, _, err := websocket.Dial(ctx, c.URL, nil)
+	var opts *websocket.DialOptions
+	if c.ProxyKey != "" {
+		opts = &websocket.DialOptions{
+			HTTPHeader: http.Header{"X-Proxy-Key": []string{c.ProxyKey}},
+		}
+	}
+	conn, _, err := websocket.Dial(ctx, c.URL, opts)
 	if err != nil {
 		return fmt.Errorf("ws dial %s: %w", c.URL, err)
 	}

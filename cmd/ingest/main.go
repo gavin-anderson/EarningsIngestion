@@ -110,6 +110,7 @@ func run(log *slog.Logger, cfg config.Config) error {
 	}()
 
 	rest := hyperliquid.NewRESTClient(cfg.HLRESTURL)
+	rest.ProxyKey = cfg.HLProxyKey
 
 	if err := syncMeta(rootCtx, log, rest, conn, mks); err != nil {
 		log.Warn("initial meta sync failed", "err", err)
@@ -125,7 +126,7 @@ func run(log *slog.Logger, cfg config.Config) error {
 	go func() { defer wg.Done(); batchAssetCtx(log, conn, assetCh) }()
 	go func() { defer wg.Done(); batchCandles(log, conn, candleCh) }()
 
-	wsErr := wsLoop(rootCtx, log, cfg.HLWSURL, mks, assetCh, candleCh)
+	wsErr := wsLoop(rootCtx, log, cfg.HLWSURL, cfg.HLProxyKey, mks, assetCh, candleCh)
 
 	close(assetCh)
 	close(candleCh)
@@ -247,7 +248,7 @@ func metaRefreshLoop(ctx context.Context, log *slog.Logger, rest *hyperliquid.RE
 // WS loop: connect -> subscribe -> read -> reconnect on failure.
 // ============================================================================
 
-func wsLoop(ctx context.Context, log *slog.Logger, wsURL string, mks []markets.Market, assetCh chan<- AssetCtxRow, candleCh chan<- CandleRow) error {
+func wsLoop(ctx context.Context, log *slog.Logger, wsURL, proxyKey string, mks []markets.Market, assetCh chan<- AssetCtxRow, candleCh chan<- CandleRow) error {
 	const (
 		minBackoff = 1 * time.Second
 		maxBackoff = 60 * time.Second
@@ -260,6 +261,7 @@ func wsLoop(ctx context.Context, log *slog.Logger, wsURL string, mks []markets.M
 		}
 
 		client := hyperliquid.NewWSClient(wsURL, log)
+		client.ProxyKey = proxyKey
 		if err := client.Connect(ctx); err != nil {
 			log.Error("ws connect failed", "err", err, "backoff", backoff)
 			metrics.WSReconnectsTotal.Inc()

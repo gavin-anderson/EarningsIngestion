@@ -1,0 +1,28 @@
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse
+    restart: unless-stopped
+    ports:
+      # Bound to loopback only. The tailnet interface is added in Phase 9 if you
+      # want to reach ClickHouse Play from your laptop.
+      - "127.0.0.1:8123:8123"   # HTTP / Play UI
+      - "127.0.0.1:9000:9000"   # native protocol (ingester connects here)
+      - "127.0.0.1:9363:9363"   # prometheus metrics (grafana-agent scrapes this)
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+      - clickhouse-logs:/var/log/clickhouse-server
+      - ./clickhouse-config/prometheus.xml:/etc/clickhouse-server/config.d/prometheus.xml:ro
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    environment:
+      CLICKHOUSE_DB: hl
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ${CH_PASSWORD}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+
+volumes:
+  clickhouse-data:
+  clickhouse-logs:

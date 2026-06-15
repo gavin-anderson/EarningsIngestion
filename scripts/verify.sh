@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-docker exec -i clickhouse clickhouse-client --query "
+docker exec -i clickhouse clickhouse-client --password "${CH_PASSWORD:-}" --query "
   SELECT tbl, dex, rows, coins, first, last
   FROM (
     SELECT 'asset_ctx' AS tbl, dex, count() AS rows, uniqExact(coin) AS coins,

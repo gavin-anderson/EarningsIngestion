@@ -1,0 +1,75 @@
+name: Deploy hl-ingest
+
+# Builds the Go binaries on GitHub's hosted runner, joins the tailnet with an
+# ephemeral Tailscale node, ships the binaries to the US data-plane box over the
+# tailnet, and restarts the systemd service. Public SSH on the box stays closed.
+#
+# Required repo secrets (Settings -> Secrets and variables -> Actions):
+#   TS_AUTHKEY       Tailscale ephemeral + reusable auth key
+#   SSH_PRIVATE_KEY  private key whose public half is in the deploy user's authorized_keys
+#   DEPLOY_HOST      box's tailnet name or 100.x.y.z IP (e.g. hl-data-plane)
+#   DEPLOY_USER      deploy user on the box (e.g. ander)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Build linux/amd64 binaries
+        env:
+          CGO_ENABLED: '0'
+          GOOS: linux
+          GOARCH: amd64
+        run: |
+          go build -trimpath -ldflags="-s -w" -o dist/hl-ingest ./cmd/ingest
+          go build -trimpath -ldflags="-s -w" -o dist/hl-backfill ./cmd/backfill
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          authkey: ${{ secrets.TS_AUTHKEY }}
+          args: --hostname=gh-actions-deploy
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+      - name: Ship binaries and restart service
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          DUSER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          SSHOPTS="-i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new"
+          scp $SSHOPTS dist/hl-ingest dist/hl-backfill "${DUSER}@${HOST}:/tmp/"
+          ssh $SSHOPTS "${DUSER}@${HOST}" '
+            set -e
+            sudo install -o root -g root -m 0755 /tmp/hl-ingest    /usr/local/bin/hl-ingest
+            sudo install -o root -g root -m 0755 /tmp/hl-backfill  /usr/local/bin/hl-backfill
+            rm -f /tmp/hl-ingest /tmp/hl-backfill
+            sudo systemctl restart hl-ingest
+            sudo systemctl is-active hl-ingest
+          '

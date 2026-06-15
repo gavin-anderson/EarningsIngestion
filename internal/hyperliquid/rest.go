@@ -20,6 +20,10 @@ type RESTClient struct {
 	URL  string
 	HTTP *http.Client
 
+	// ProxyKey, if non-empty, is sent as the X-Proxy-Key header on every
+	// request so the edge proxy can authenticate the ingester.
+	ProxyKey string
+
 	// MinInterval is the minimum gap between requests. Hyperliquid's docs
 	// suggest staying well under their per-IP limits; 100ms is generous.
 	MinInterval time.Duration
@@ -113,6 +117,9 @@ func (c *RESTClient) do(ctx context.Context, payload any) ([]byte, error) {
 		}
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Accept", "application/json")
+		if c.ProxyKey != "" {
+			req.Header.Set("X-Proxy-Key", c.ProxyKey)
+		}
 
 		c.lastCall = time.Now()
 		resp, err := c.HTTP.Do(req)

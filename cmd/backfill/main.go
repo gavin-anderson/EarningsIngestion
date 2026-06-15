@@ -122,6 +122,7 @@ func run(log *slog.Logger, cfg config.Config) error {
 	}
 
 	rest := hyperliquid.NewRESTClient(cfg.HLRESTURL)
+	rest.ProxyKey = cfg.HLProxyKey
 
 	// Build the list of markets to backfill.
 	var mks []markets.Market
