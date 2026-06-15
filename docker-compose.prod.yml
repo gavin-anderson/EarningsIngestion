@@ -4,11 +4,13 @@ services:
     container_name: clickhouse
     restart: unless-stopped
     ports:
-      # Bound to loopback only. The tailnet interface is added in Phase 9 if you
-      # want to reach ClickHouse Play from your laptop.
-      - "127.0.0.1:8123:8123"   # HTTP / Play UI
+      # HTTP/Play UI bind address comes from CH_HTTP_BIND (default loopback).
+      # Set CH_HTTP_BIND=<tailnet-ip> in .env to reach Play over Tailscale.
+      # Binding to the specific tailnet IP (not 0.0.0.0) keeps it off the
+      # public internet even though Docker bypasses ufw for published ports.
+      - "${CH_HTTP_BIND:-127.0.0.1}:8123:8123"   # HTTP / Play UI
       - "127.0.0.1:9000:9000"   # native protocol (ingester connects here)
-      - "127.0.0.1:9363:9363"   # prometheus metrics (grafana-agent scrapes this)
+      - "127.0.0.1:9363:9363"   # prometheus metrics (alloy scrapes this)
     volumes:
       - clickhouse-data:/var/lib/clickhouse
       - clickhouse-logs:/var/log/clickhouse-server
