@@ -25,6 +25,31 @@ services:
       CLICKHOUSE_PASSWORD: ${CH_PASSWORD}
       CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
 
+  # Backup tool. Not started by `up -d` (profile "backup"); invoked on demand /
+  # by cron via `docker compose --profile backup run --rm clickhouse-backup ...`.
+  # Shares the data volume so it can read parts, and reaches ClickHouse over the
+  # compose network. All config comes from env (secrets live in .env).
+  clickhouse-backup:
+    image: altinity/clickhouse-backup:latest
+    container_name: clickhouse-backup
+    profiles: ["backup"]
+    environment:
+      LOG_LEVEL: info
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: "9000"
+      CLICKHOUSE_USERNAME: default
+      CLICKHOUSE_PASSWORD: ${CH_PASSWORD}
+      REMOTE_STORAGE: sftp
+      SFTP_ADDRESS: ${SFTP_ADDRESS}
+      SFTP_PORT: ${SFTP_PORT:-23}
+      SFTP_USERNAME: ${SFTP_USERNAME}
+      SFTP_PASSWORD: ${SFTP_PASSWORD}
+      SFTP_PATH: ${SFTP_PATH:-clickhouse-backup}
+      BACKUPS_TO_KEEP_REMOTE: "7"
+      BACKUPS_TO_KEEP_LOCAL: "0"
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+
 volumes:
   clickhouse-data:
   clickhouse-logs:
